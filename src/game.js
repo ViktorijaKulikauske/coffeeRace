@@ -62,7 +62,6 @@ window.addEventListener('resize', () => {
 
 function preload() {
     console.log('Preload function started.');
-    // this.load.html('roleForm', 'src/roleForm.html'); // Commented out for now
     this.load.on('complete', () => {
         console.log('All assets loaded.');
     });
@@ -70,8 +69,49 @@ function preload() {
 
 function create() {
     console.log('Create function started.');
+
+    // Add role selection menu
+    const roles = ['frontend', 'backend', 'qa', 'tester'];
+    const menuText = this.add.text(window.innerWidth / 2, 100, 'Select Your Role:', {
+        font: '24px Arial',
+        fill: '#000'
+    }).setOrigin(0.5);
+
+    // Store buttons in an array
+    const roleButtons = [];
+
+    roles.forEach((role, index) => {
+        const roleButton = this.add.text(window.innerWidth / 2, 150 + index * 50, role, {
+            font: '20px Arial',
+            fill: '#00f',
+            backgroundColor: '#fff',
+            padding: { x: 10, y: 5 }
+        })
+        .setOrigin(0.5)
+        .setInteractive()
+        .on('pointerdown', () => {
+            this.role = role; // Set the selected role
+            console.log(`Role selected: ${this.role}`);
+            menuText.destroy(); // Remove menu text
+            roleButtons.forEach(button => button.destroy()); // Destroy all buttons
+            this.startGame(); // Call startGame as a method
+        });
+        roleButtons.push(roleButton); // Add button to the array
+    });
+
+    console.log('Role selection menu added.');
+
+    // Initialize gameStarted to false
+    this.gameStarted = false;
+}
+
+function startGame() {
+    console.log('StartGame function started.');
+
+    // Set gameStarted to true
+    this.gameStarted = true;
+
     // Role selection
-    this.role = 'frontend'; // Default role set to 'frontend'
     this.modules = [];
     this.availableModules = {
         frontend: generateUniqueModules(50, 'frontend'),
@@ -105,26 +145,29 @@ function create() {
     this.physics.add.existing(this.coffeeMachine);
 
     console.log('Coffee machine initialized.');
-    console.log('Player and coffee machine initialized.'); // Debug: Log after player and coffee machine are initialized
+    console.log('Player and coffee machine initialized.');
 
     // Add keyboard controls
     this.cursors = this.input.keyboard.createCursorKeys();
-    console.log('Keyboard controls initialized.'); // Debug: Log after keyboard controls are initialized
+    console.log('Keyboard controls initialized.');
 
     // Add overlap logic
     this.physics.add.overlap(this.player, this.coffeeMachine, collectCoffee, null, this);
-    console.log('Overlap logic initialized.'); // Debug: Log after overlap logic is initialized
+    console.log('Overlap logic initialized.');
 
-    console.log('Create function completed.'); // Debug: Log when create function completes
+    console.log('StartGame function completed.');
 }
 
-function update() {
-    console.log('Update function running.'); // Debug: Log each frame update
+// Add startGame as a method of the Scene
+Phaser.Scene.prototype.startGame = startGame;
 
-    if (!this.player || !this.player.body) {
-        console.warn('Player or player body is not defined.'); // Debug: Warn if player is not defined
+function update() {
+    // Ensure the game has started before running update logic
+    if (!this.gameStarted) {        
         return;
     }
+
+    console.log('Update function running.');
 
     this.player.body.setVelocity(0);
     const speed = 150; // Default speed
@@ -141,7 +184,12 @@ function update() {
         this.player.body.setVelocityY(speed);
     }
 
-    console.log(`Player position: (${this.player.x}, ${this.player.y})`); // Debug: Log player position
+    // Log player position only if it changes
+    if (this.lastPlayerX !== this.player.x || this.lastPlayerY !== this.player.y) {
+        console.log(`Player position: (${this.player.x}, ${this.player.y})`);
+        this.lastPlayerX = this.player.x;
+        this.lastPlayerY = this.player.y;
+    }
 }
 
 function collectCoffee(player, coffeeMachine) {
