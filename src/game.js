@@ -155,7 +155,36 @@ function startGame() {
     this.physics.add.overlap(this.player, this.coffeeMachine, collectCoffee, null, this);
     console.log('Overlap logic initialized.');
 
+    // Add timer
+    this.timeLeft = 20; // 20 seconds
+    this.timerText = this.add.text(10, 10, `Time Left: ${this.timeLeft}`, {
+        font: '20px Arial',
+        fill: '#000'
+    });
+
+    this.timerEvent = this.time.addEvent({
+        delay: 1000, // 1 second
+        callback: () => {
+            this.timeLeft--;
+            this.timerText.setText(`Time Left: ${this.timeLeft}`);
+            if (this.timeLeft <= 0) {
+                this.endGame();
+            }
+        },
+        callbackScope: this,
+        loop: true
+    });
+
     console.log('StartGame function completed.');
+}
+
+function endGame() {
+    console.log('Game Over!');
+    this.scene.pause();
+    this.add.text(window.innerWidth / 2, window.innerHeight / 2, 'Game Over!', {
+        font: '30px Arial',
+        fill: '#ff0000'
+    }).setOrigin(0.5);
 }
 
 // Add startGame as a method of the Scene
@@ -166,8 +195,6 @@ function update() {
     if (!this.gameStarted) {        
         return;
     }
-
-    console.log('Update function running.');
 
     this.player.body.setVelocity(0);
     const speed = 150; // Default speed
